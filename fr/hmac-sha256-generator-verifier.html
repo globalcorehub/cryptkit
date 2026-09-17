@@ -653,12 +653,17 @@
   const verifyInput = document.getElementById('hmac-verify-input');
   const verifyResult = document.getElementById('hmac-verify-result');
 
+  let computeVersion = 0;
   async function computeHMAC() {
+    const version = ++computeVersion;
+    hexEl.value = '';
+    b64El.value = '';
+    checkVerify();
     const secret = secretEl.value || '';
     const message = inputEl.value || '';
     const algo = algoEl.value;
 
-    if (!secret || !message) {
+    if (!secret) {
       hexEl.value = '';
       b64El.value = '';
       checkVerify();
@@ -675,6 +680,7 @@
         ['sign']
       );
       const sig = await crypto.subtle.sign('HMAC', key, enc.encode(message));
+      if (version !== computeVersion) return;
       const bytes = new Uint8Array(sig);
       
       hexEl.value = Array.from(bytes, b => b.toString(16).padStart(2, '0')).join('');
@@ -685,6 +691,8 @@
 
       checkVerify();
     } catch (e) {
+      if (version !== computeVersion) return;
+      b64El.value = '';
       hexEl.value = 'Error: ' + e.message;
     }
   }
